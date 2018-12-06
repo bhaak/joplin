@@ -321,6 +321,11 @@ class WebDavApi {
 		if (['MKCOL', 'DELETE', 'PUT', 'MOVE'].indexOf(method) >= 0) return null;
 
 		const output = await loadResponseJson();
+		const responseArray = this.arrayFromJson(output, ['d:multistatus', 'd:response']);
+		if (responseArray && responseArray.length === 1) {
+			const status = this.stringFromJson(output, ['d:multistatus', 'd:response', 0, 'd:propstat', 0, 'd:status', 0]);
+			if (status && status.indexOf('404') >= 0) throw newError('Not found', 404);
+		}
 
 		// Check that we didn't get for example an HTML page (as an error) instead of the JSON response
 		// null responses are possible, for example for DELETE calls
